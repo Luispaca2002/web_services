@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SGA - Dashboard Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-10 bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-2xl">
+            <div>
+                <h1 class="text-3xl font-extrabold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                    SGA: Services Interoperability
+                </h1>
+                <p class="text-slate-400 text-sm italic">Panel de Gestión - Ejercicio Práctico UTEQ</p>
+            </div>
+            <div class="flex gap-4 mt-4 md:mt-0">
+                <div class="text-center px-4 border-r border-slate-700">
+                    <p class="text-[10px] text-slate-500 uppercase font-bold">REST API (3000)</p>
+                    <p class="text-emerald-400 font-bold"><i class="fas fa-circle text-[8px] animate-pulse"></i> Online</p>
+                </div>
+                <div class="text-center px-4">
+                    <p class="text-[10px] text-slate-500 uppercase font-bold">SOAP WSDL (8000)</p>
+                    <p class="text-blue-400 font-bold">Active</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl h-fit">
+                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <i class="fas fa-cloud-upload-alt text-emerald-400"></i> Registrar Estudiante
+                </h3>
+                <div class="space-y-4">
+                    <input id="new-name" type="text" placeholder="Nombre completo" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 focus:outline-none focus:border-emerald-500 transition-all">
+                    <input id="new-proj" type="text" placeholder="Proyecto asignado" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 focus:outline-none focus:border-emerald-500 transition-all">
+                    <button onclick="crearEstudiante()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition-all shadow-lg">
+                        <i class="fas fa-save mr-2"></i> Guardar en Firebase
+                    </button>
+                </div>
+
+                <hr class="my-6 border-slate-700">
+
+                <h3 class="text-sm font-bold mb-4 uppercase text-slate-500 tracking-widest">Interacción Individual</h3>
+                <div class="space-y-3">
+                    <button onclick="verPerfilFB()" class="w-full bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-600/50 p-2 rounded-lg text-xs font-bold transition-all">
+                        <i class="fab fa-facebook mr-2"></i> Recuperar Perfil Social
+                    </button>
+                    <button onclick="verStatusHeroku()" class="w-full bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-white border border-purple-600/50 p-2 rounded-lg text-xs font-bold transition-all">
+                        <i class="fas fa-server mr-2"></i> Consultar Despliegue PaaS
+                    </button>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 space-y-8">
+                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold">Listado Sincronizado (REST + NoSQL)</h3>
+                        <button onclick="cargarDatos()" class="text-slate-400 hover:text-white transition-colors">
+                            <i class="fas fa-sync-alt"></i> Actualizar
+                        </button>
+                    </div>
+                    <div id="estudiantes-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                </div>
+
+                <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 rounded-2xl shadow-2xl text-center">
+                    <h2 class="text-2xl font-bold mb-2 text-white">Prueba Multicloud Federada</h2>
+                    <p class="mb-6 opacity-90 text-sm text-blue-100">Consumo real de 4 APIs: Google Cloud, Firebase, Facebook y Heroku Status.</p>
+                    <button onclick="testAPIs()" class="bg-white text-blue-700 font-bold px-10 py-4 rounded-full hover:scale-110 transition-transform shadow-2xl active:scale-95">
+                        <i class="fas fa-network-wired mr-2"></i> Ejecutar Prueba Integral
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "http://localhost:3000/api";
+
+        function cargarDatos() {
+            fetch(`${API_BASE}/usuarios`)
+                .then(res => res.json())
+                .then(res => {
+                    const container = document.getElementById('estudiantes-grid');
+                    if (!res.datos || res.datos.length === 0) {
+                        container.innerHTML = '<p class="text-slate-500 italic text-sm">Sin registros.</p>';
+                        return;
+                    }
+                    container.innerHTML = res.datos.map(e => `
+                        <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 hover:border-blue-500 transition-all">
+                            <p class="text-blue-500 font-mono text-[9px] truncate">UID: ${e.id}</p>
+                            <h4 class="font-bold text-slate-100">${e.nombre}</h4>
+                            <p class="text-slate-400 text-xs mt-1 italic"><i class="fas fa-folder mr-1"></i>${e.proyecto}</p>
+                        </div>
+                    `).join('');
+                });
+        }
+
+        function crearEstudiante() {
+            const nombre = document.getElementById('new-name').value;
+            const proyecto = document.getElementById('new-proj').value;
+            if (!nombre || !proyecto) return Swal.fire('Error', 'Complete los campos', 'warning');
+
+            fetch(`${API_BASE}/usuarios`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre, proyecto })
+            })
+            .then(() => {
+                Swal.fire({ icon: 'success', title: 'Firebase Sincronizado', background: '#1e293b', color: '#fff' });
+                document.getElementById('new-name').value = '';
+                document.getElementById('new-proj').value = '';
+                cargarDatos();
+            });
+        }
+
+        async function verPerfilFB() {
+            Swal.fire({ title: 'Cargando...', didOpen: () => Swal.showLoading() });
+            const res = await fetch(`${API_BASE}/perfil-facebook`); 
+            const data = await res.json();
+            Swal.fire({
+                title: 'Facebook Graph API',
+                icon: 'info',
+                background: '#1e293b',
+                color: '#fff',
+                html: `<div class="text-left text-xs text-blue-400"><b>${data.facebook}</b></div>`
+            });
+        }
+
+        async function verStatusHeroku() {
+            Swal.fire({ title: 'Cargando...', didOpen: () => Swal.showLoading() });
+            const res = await fetch(`${API_BASE}/status-heroku`); 
+            const data = await res.json();
+            Swal.fire({
+                title: 'Heroku PaaS Status',
+                icon: 'warning',
+                background: '#1e293b',
+                color: '#fff',
+                html: `<div class="text-left text-xs text-purple-400"><b>${data.heroku}</b></div>`
+            });
+        }
+
+        async function testAPIs() {
+            const { value: tema } = await Swal.fire({
+                title: 'Buscador Multicloud',
+                input: 'text',
+                inputLabel: '¿Tema a investigar?',
+                showCancelButton: true,
+                background: '#1e293b',
+                color: '#fff'
+            });
+
+            if (tema) {
+                Swal.fire({ title: 'Consumiendo 4 APIs...', didOpen: () => Swal.showLoading() });
+
+                fetch(`${API_BASE}/interoperabilidad?q=${tema}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Integración Multicloud OK',
+                            background: '#1e293b',
+                            color: '#fff',
+                            html: `
+                                <div class="text-left text-[11px] space-y-3 p-2">
+                                    <div class="border-b border-slate-700 pb-2">
+                                        <p class="text-emerald-400 font-bold mb-1">1. GOOGLE BOOKS:</p>
+                                        <ul class="list-disc pl-5 text-slate-300">${data.google.map(l => `<li class="truncate">${l}</li>`).join('')}</ul>
+                                    </div>
+                                    <div class="border-b border-slate-700 pb-2">
+                                        <p class="text-blue-400 font-bold mb-1">2. FIREBASE REST:</p>
+                                        <p class="text-slate-300 ml-5">${data.firebase}</p>
+                                    </div>
+                                </div>`
+                        });
+                    }).catch(() => Swal.fire('Error', 'Fallo en la federación de servicios', 'error'));
+            }
+        }
+
+        window.onload = cargarDatos;
+    </script>
+</body>
+
+</html>
